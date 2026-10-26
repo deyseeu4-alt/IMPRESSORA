@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de Impressão / Xerox</title>
+<style>
+:root{
+  --bg:#f3f5f7; --card:#ffffff; --text:#1c2430; --muted:#5d6b7a;
+  --line:#d9e0e7; --accent:#0b5cad; --accent-text:#ffffff; --total:#e8f1fb;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#12171d; --card:#1b222b; --text:#e8edf2; --muted:#9aa8b6;
+    --line:#2e3946; --accent:#5aa6f0; --accent-text:#0d1722; --total:#1d2f44;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:Georgia,"Times New Roman",serif;line-height:1.5;padding:24px 16px}
+main{max-width:520px;margin:0 auto}
+h1{font-size:1.6rem;margin:0 0 4px}
+p.sub{margin:0 0 20px;color:var(--muted);font-family:system-ui,sans-serif;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px;
+  font-family:system-ui,sans-serif}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-weight:600;font-size:.95rem;margin-bottom:6px}
+input{width:100%;font-size:1.2rem;padding:10px 12px;border:1px solid var(--line);
+  border-radius:8px;background:var(--bg);color:var(--text)}
+input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.info{font-size:.85rem;color:var(--muted);margin-top:6px;min-height:1.3em}
+.result{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.line{display:flex;justify-content:space-between;padding:4px 0}
+.total{background:var(--total);border-radius:8px;padding:12px 14px;margin-top:10px;
+  display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+.total span:last-child{font-size:1.7rem}
+button{margin-top:14px;width:100%;padding:11px;font-size:1rem;border:0;border-radius:8px;
+  background:var(--accent);color:var(--accent-text);font-weight:600;cursor:pointer}
+.note{font-size:.8rem;color:var(--muted);margin-top:14px;font-family:system-ui,sans-serif}
+</style>
+</head>
+<body>
+<main>
+  <h1>Impressão / Xerox</h1>
+  <p class="sub">Digite a quantidade de folhas e veja o total.</p>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="pb">Preto e branco</label>
+        <input id="pb" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+        <div class="info" id="infoPb"></div>
+      </div>
+      <div>
+        <label for="cor">Colorida</label>
+        <input id="cor" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+        <div class="info" id="infoCor"></div>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="line"><span>Preto e branco</span><span id="subPb">R$ 0,00</span></div>
+      <div class="line"><span>Colorida</span><span id="subCor">R$ 0,00</span></div>
+      <div class="total"><span>Total</span><span id="total">R$ 0,00</span></div>
+    </div>
+    <button id="limpar" type="button">Limpar</button>
+  </div>
+
+  <p class="note">O preço por folha vale para toda a quantidade, conforme a faixa em que ela se encaixa.
+  Acima de 100 folhas, usa-se o preço da faixa de 96–100.</p>
+</main>
+
+<script>
+// Tabela: [quantidade máxima da faixa, preço P&B (centavos), preço colorido (centavos)]
+const FAIXAS = [
+  [5,100,150],[10,90,135],[15,85,128],[20,80,120],[25,75,113],
+  [30,70,105],[35,68,102],[40,65,98],[45,63,95],[50,60,90],
+  [55,58,87],[60,56,84],[65,54,81],[70,52,78],[75,50,75],
+  [80,49,74],[85,48,72],[90,47,71],[95,46,69],[100,45,68]
+];
+
+const brl = c => (c / 100).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+
+function calcular(qtd, indice){
+  if (!qtd || qtd < 1) return {preco:0, total:0};
+  const faixa = FAIXAS.find(f => qtd <= f[0]) || FAIXAS[FAIXAS.length - 1];
+  const preco = faixa[indice];
+  return {preco, total: preco * qtd};
+}
+
+function ler(id){
+  const n = parseInt(document.getElementById(id).value, 10);
+  return isNaN(n) || n < 0 ? 0 : n;
+}
+
+function atualizar(){
+  const pb = calcular(ler("pb"), 1);
+  const cor = calcular(ler("cor"), 2);
+
+  document.getElementById("infoPb").textContent = pb.preco ? brl(pb.preco) + " por folha" : "";
+  document.getElementById("infoCor").textContent = cor.preco ? brl(cor.preco) + " por folha" : "";
+  document.getElementById("subPb").textContent = brl(pb.total);
+  document.getElementById("subCor").textContent = brl(cor.total);
+  document.getElementById("total").textContent = brl(pb.total + cor.total);
+}
+
+document.getElementById("pb").addEventListener("input", atualizar);
+document.getElementById("cor").addEventListener("input", atualizar);
+document.getElementById("limpar").addEventListener("click", () => {
+  document.getElementById("pb").value = "";
+  document.getElementById("cor").value = "";
+  atualizar();
+  document.getElementById("pb").focus();
+});
+</script>
+</body>
+</html>
